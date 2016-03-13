@@ -1,8 +1,8 @@
 /**
- * 
+ * Prisoner Numbered Hat Problem classes.
  */
 /**
- * @author Sherman
+ * @author Technizor
  *
  */
 package io.technizor.prisonerhatproblem;

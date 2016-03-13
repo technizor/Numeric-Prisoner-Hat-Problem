@@ -12,6 +12,11 @@ import java.util.List;
  *
  */
 public final class PrisonerInformationModel {
+	public static enum PrisonerStatus {
+		LIMBO, UNKNOWN, LOST, SAVED
+	}
+
+	private final boolean statusKnown;
 	private final List<Integer> hats;
 	private final List<Integer> numbersSaid;
 	private final boolean[] prisonerSurvived;
@@ -23,10 +28,12 @@ public final class PrisonerInformationModel {
 	private final int survivalCount;
 	private final int deathCount;
 
-	protected PrisonerInformationModel(List<Integer> hats2,
-			List<Integer> numbersSaid2, boolean[] prisonerSurvived2,
-			boolean[] isNumberSaid2, int numPrisoners2, int numHats2,
-			int remainingPrisoners2, int survivalCount2, int deathCount2) {
+	protected PrisonerInformationModel(boolean statusKnown,
+			List<Integer> hats2, List<Integer> numbersSaid2,
+			boolean[] prisonerSurvived2, boolean[] isNumberSaid2,
+			int numPrisoners2, int numHats2, int remainingPrisoners2,
+			int survivalCount2, int deathCount2) {
+		this.statusKnown = statusKnown;
 		this.hats = Collections.unmodifiableList(hats2);
 		this.numbersSaid = Collections.unmodifiableList(numbersSaid2);
 		this.prisonerSurvived = Arrays.copyOf(prisonerSurvived2,
@@ -99,9 +106,28 @@ public final class PrisonerInformationModel {
 		return prisonersRemaining() > 0;
 	}
 
-	public boolean isPrisonerDead(int number) {
-		if (number <= prisonersRemaining())
-			return false;
-		return !this.prisonerSurvived[number - 1];
+	/**
+	 * Gets the status of the prisoner at the specified position.
+	 * 
+	 * @param index
+	 *            The zero-based index of the prisoner. i.e. the front prisoner
+	 *            (going last) is numbered 0, while the back prisoner (going
+	 *            first) is numbered one less than the total number of
+	 *            prisoners.
+	 * @return
+	 */
+	public PrisonerStatus getPrisonerStatus(int index) {
+		if (index < 0 || index >= numberOfPrisoners()) {
+			throw new IllegalArgumentException(
+					"No such prisoner with the index " + index);
+		}
+		if (index < prisonersRemaining())
+			return PrisonerStatus.LIMBO;
+		if (this.statusKnown) {
+
+			return this.prisonerSurvived[index] ? PrisonerStatus.SAVED
+					: PrisonerStatus.LOST;
+		}
+		return PrisonerStatus.UNKNOWN;
 	}
 }

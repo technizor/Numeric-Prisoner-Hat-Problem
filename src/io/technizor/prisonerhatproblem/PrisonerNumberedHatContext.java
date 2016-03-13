@@ -12,6 +12,7 @@ import java.util.List;
  *
  */
 public class PrisonerNumberedHatContext {
+	private final boolean statusKnown;
 	private final ArrayList<Integer> hats;
 	private final ArrayList<Integer> numbersSaid;
 	private final boolean[] prisonerSurvived;
@@ -23,7 +24,20 @@ public class PrisonerNumberedHatContext {
 	private int survivalCount;
 	private int deathCount;
 
-	public PrisonerNumberedHatContext(int numPrisoners) {
+	/**
+	 * Creates a new prisoner puzzle with the specified number of prisoners. The
+	 * number of hats will be 1 more than the number of prisoners specified.
+	 * Whether the prisoners know the status of another prisoner after they have
+	 * guessed can be set.
+	 * 
+	 * @param statusKnown
+	 *            Whether the prisoners should know the status of a prisoner
+	 *            after they have guessed (i.e. right or wrong).
+	 * @param numPrisoners
+	 *            The number of prisoners to line up.
+	 */
+	public PrisonerNumberedHatContext(boolean statusKnown, int numPrisoners) {
+		this.statusKnown = statusKnown;
 		this.numHats = numPrisoners + 1;
 		this.numPrisoners = numPrisoners;
 		prisonerSurvived = new boolean[numPrisoners];
@@ -36,14 +50,22 @@ public class PrisonerNumberedHatContext {
 		hats = new ArrayList<>(numHats);
 		for (int v = 0; v < numHats; v++)
 			hats.add(v);
-		Collections.shuffle(hats);
+		Collections.shuffle(this.hats);
 	}
 
-	public boolean executeStrategy(PrisonerStrategy strategy) {
-		int nextValue = strategy.executeStrategy(new PrisonerInformationModel(hats,
-				numbersSaid, prisonerSurvived, isNumberSaid, numPrisoners,
-				numHats, remainingPrisoners, survivalCount, deathCount));
-		return this.checkNext(nextValue);
+	/**
+	 * Executes the next prisoner's strategy for guessing their hat number.
+	 * 
+	 * @param strategy
+	 *            The strategy to use with the information known to the
+	 *            prisoner.
+	 */
+	public void executeStrategy(PrisonerStrategy strategy) {
+		int nextValue = strategy.executeStrategy(new PrisonerInformationModel(
+				this.statusKnown, this.hats, numbersSaid, prisonerSurvived,
+				isNumberSaid, numPrisoners, numHats, remainingPrisoners,
+				survivalCount, deathCount));
+		this.checkNext(nextValue);
 	}
 
 	/**
@@ -57,6 +79,8 @@ public class PrisonerNumberedHatContext {
 	private boolean checkNext(int number) {
 		if (!hasPrisonersRemaining())
 			throw new IllegalStateException("Already finished all prisoners.");
+		if (number >= numberOfHats())
+			throw new IllegalArgumentException("Hat value is out of bounds.");
 		numbersSaid.add(number);
 		boolean result;
 		if (isNumberSaid[number]) {
